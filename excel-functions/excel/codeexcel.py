@@ -3,7 +3,6 @@ import pathlib
 class Codeexcel:
 
     def LeerExcel(self):
-        productos = dict()
         ruta = str(pathlib.Path().absolute()) + '/excel-functions/excel/productos.xls'
         workbook = xlrd.open_workbook(ruta, formatting_info=True)
         sheet = workbook.sheet_by_index(0)

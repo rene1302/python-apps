@@ -1,5 +1,6 @@
 import os
 from io import open
+import xlrd
 import pathlib
 import requests
 import shopify
@@ -9,6 +10,9 @@ from requests.exceptions import HTTPError
 load_dotenv()
 
 class Api:
+
+    def getFile(self, file_origin):
+        print(file_origin)
 
     def createNewProduct(self):
 
