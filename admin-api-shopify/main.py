@@ -4,3 +4,4 @@ xx = api.Api()
 
 # xx.getProducts()
 xx.getFile("productos.xls")
+# xx.ValidaProducto("12345678")

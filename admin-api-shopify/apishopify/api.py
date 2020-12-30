@@ -11,10 +11,47 @@ load_dotenv()
 
 class Api:
 
+    def ValidaProducto(self, sku):
+
+        try:
+            session = shopify.Session(os.getenv('DOMAIN_STOREPRUEBASHOP'), os.getenv('API_VERSION'), os.getenv('CODE_TOKEN_STOREPRUEBASHOP'))
+            shopify.ShopifyResource.activate_session(session) 
+            id_product = '''
+                query ($sku : String){
+                    productVariants(first:1, query: $sku){
+                        edges{
+                            node{
+                                product{
+                                    id
+                                }
+                            }
+                        }
+                    }
+                }
+            '''    
+            variable = {"sku": sku}
+            product = shopify.GraphQL().execute(id_product, variable)
+            data = json.loads(product)
+            if (data['data']['productVariants']['edges'] == []):
+                res = 0
+            else:    
+                edges = data['data']['productVariants']['edges']
+                for x in edges:
+                    id = x['node']['product']['id']
+                    res = str(id[22:])
+            shopify.ShopifyResource.clear_session()
+        except:
+            res = 0 
+
+        return res           
+
+
+
+
     def getFile(self, file_origin):
         ruta = str(pathlib.Path().absolute()) + "/admin-api-shopify/apishopify/" + file_origin
         workbook = xlrd.open_workbook(ruta, formatting_info=True)
-        sheet = workbook.sheet_by_index(0)
+        sheet = workbook.sheet_by_index(0)        
 
         for i in range(1, sheet.nrows):
             sku =  str(int(float(repr(sheet.cell_value(i,0)))))
@@ -29,7 +66,11 @@ class Api:
             unidad_peso =  sheet.cell_value(i,9)
             proveedor =  sheet.cell_value(i,10)
             categoria =  sheet.cell_value(i,11)
-            self.createNewProduct(sku, nombre, descripcion, precio_base, precio_descuento, activo, tags, stock, peso, unidad_peso, proveedor, categoria)
+            if (self.ValidaProducto(sku) == 0):
+                self.createNewProduct(sku, nombre, descripcion, precio_base, precio_descuento, activo, tags, stock, peso, unidad_peso, proveedor, categoria)
+            else:
+                continue    
+
 
     def createNewProduct(self, sku, nombre, descripcion, precio_base, precio_descuento, activo, tags, stock, peso, unidad_peso, proveedor, categoria):
 
@@ -48,7 +89,7 @@ class Api:
             variant.sku = sku
             variant.compare_at_price = precio_base
             variant.grams = peso
-            variant.weight = 10.0
+            variant.weight = peso
             variant.inventory_management = 'shopify'
             variant.inventory_policy = 'deny'
             variant.weight_unit = unidad_peso
