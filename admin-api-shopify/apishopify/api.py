@@ -17,60 +17,61 @@ class Api:
         sheet = workbook.sheet_by_index(0)
 
         for i in range(1, sheet.nrows):
-            sku =  str(repr(sheet.cell_value(i,0)))
-            nombre =  str(repr(sheet.cell_value(i,1)))
-            descripcion =  str(repr(sheet.cell_value(i,2)))
+            sku =  str(int(float(repr(sheet.cell_value(i,0)))))
+            nombre =  sheet.cell_value(i,1)
+            descripcion =  sheet.cell_value(i,2)
             precio_base = int(float(repr(sheet.cell_value(i,3))))
             precio_descuento = int(float(repr(sheet.cell_value(i,4))))
-            activo =  str(repr(sheet.cell_value(i,5)))
-            tags =  str(repr(sheet.cell_value(i,6)))
+            activo =  sheet.cell_value(i,5)
+            tags =  sheet.cell_value(i,6)
             stock = int(float(repr(sheet.cell_value(i,7))))
             peso = float(repr(sheet.cell_value(i,8)))
-            unidad_peso =  str(repr(sheet.cell_value(i,9)))
-            proveedor =  str(repr(sheet.cell_value(i,10)))
-            categoria =  str(repr(sheet.cell_value(i,11)))
+            unidad_peso =  sheet.cell_value(i,9)
+            proveedor =  sheet.cell_value(i,10)
+            categoria =  sheet.cell_value(i,11)
+            self.createNewProduct(sku, nombre, descripcion, precio_base, precio_descuento, activo, tags, stock, peso, unidad_peso, proveedor, categoria)
 
-    def createNewProduct(self):
+    def createNewProduct(self, sku, nombre, descripcion, precio_base, precio_descuento, activo, tags, stock, peso, unidad_peso, proveedor, categoria):
 
         try:
             session = shopify.Session(os.getenv('DOMAIN_STOREPRUEBASHOP'), os.getenv('API_VERSION'), os.getenv('CODE_TOKEN_STOREPRUEBASHOP'))
             shopify.ShopifyResource.activate_session(session)  
             new_product = shopify.Product()
-            new_product.title = "Shopify Logo T-Shirt 22"
-            new_product.status = 'active'
-            new_product.vendor = 'Nike'
-            new_product.tags = "Acero inoxidable, Automatico, Cristal Mineral, Hombre, Reloj"
-            new_product.product_type = 'Copas'
-            new_product.body_html = "<b>Test description</b>"
+            new_product.title = nombre
+            new_product.status = activo
+            new_product.vendor = proveedor
+            new_product.tags = tags
+            new_product.product_type = categoria
+            new_product.body_html = descripcion
             variant = shopify.Variant()
-            variant.price = 59890
-            variant.sku = 'H0101q'
-            variant.compare_at_price = 150000
-            variant.grams = 10
+            variant.price = precio_descuento
+            variant.sku = sku
+            variant.compare_at_price = precio_base
+            variant.grams = peso
             variant.weight = 10.0
             variant.inventory_management = 'shopify'
             variant.inventory_policy = 'deny'
-            variant.weight_unit = 'g'
+            variant.weight_unit = unidad_peso
             variant.requires_shipping = True
             new_product.variants = [variant]
-            new_product.save()  
+            new_product.save() 
             res_location = self.getLocations()
             if ( res_location != 'error' ):
-                self.addStock(res_location, new_product.variants[0].inventory_item_id)  
+                self.addStock(res_location, new_product.variants[0].inventory_item_id, stock)  
             self.addImagesProduct(new_product.id)
             shopify.ShopifyResource.clear_session()
         except:
             print('error de conexion b')  
 
 
-    def addStock(self, location_id, inventory_item_id):
+    def addStock(self, location_id, inventory_item_id, stock):
 
         url_stock = os.getenv('DOMAIN_STOREPRUEBASHOP') + os.getenv('API_BASE') + 'inventory_levels/adjust.json'
 
         data = {
             "location_id": location_id,
             "inventory_item_id": inventory_item_id,
-            "available_adjustment": 34
+            "available_adjustment": stock
         }
 
         headers = { os.getenv('TOKEN_HEADER') : os.getenv('CODE_TOKEN_STOREPRUEBASHOP')}
@@ -120,7 +121,6 @@ class Api:
 
             try:
                 result = requests.post(url_images, headers=headers, data=json.dumps(data))
-                print(result)
             except:
                 print('error cargar imagen')
 
