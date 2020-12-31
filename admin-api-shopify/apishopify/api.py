@@ -121,6 +121,7 @@ class Api:
         return res      
 
     def addStock(self, location_id, inventory_item_id, stock):
+        
 
         url_stock = os.getenv('DOMAIN_STOREPRUEBASHOP') + os.getenv('API_BASE') + 'inventory_levels/adjust.json'
 
