@@ -12,6 +12,9 @@ load_dotenv()
 
 class Api:
 
+    def prueba(self):
+        print('todo bien')
+
     def ValidaProducto(self, sku):
         try:
             session = shopify.Session(os.getenv('DOMAIN_STOREPRUEBASHOP'), os.getenv('API_VERSION'), os.getenv('CODE_TOKEN_STOREPRUEBASHOP'))
