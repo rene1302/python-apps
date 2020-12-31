@@ -43,9 +43,15 @@ class Api:
         except:
             res = -1 
 
-        return res           
+        return res     
 
-    def getFile(self, file_origin):
+    def getFileActualizaStock(self, file_origin):
+        ruta = str(pathlib.Path().absolute()) + "/admin-api-shopify/apishopify/" + file_origin
+        workbook = xlrd.open_workbook(ruta, formatting_info=True)
+        sheet = workbook.sheet_by_index(0)
+        print(ruta)          
+
+    def getFileProducts(self, file_origin):
         ruta = str(pathlib.Path().absolute()) + "/admin-api-shopify/apishopify/" + file_origin
         workbook = xlrd.open_workbook(ruta, formatting_info=True)
         sheet = workbook.sheet_by_index(0)        
@@ -122,7 +128,6 @@ class Api:
 
     def addStock(self, location_id, inventory_item_id, stock):
         
-
         url_stock = os.getenv('DOMAIN_STOREPRUEBASHOP') + os.getenv('API_BASE') + 'inventory_levels/adjust.json'
 
         data = {
