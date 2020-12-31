@@ -41,12 +41,9 @@ class Api:
                     res = str(id[22:])
             shopify.ShopifyResource.clear_session()
         except:
-            res = 0 
+            res = -1 
 
         return res           
-
-
-
 
     def getFile(self, file_origin):
         ruta = str(pathlib.Path().absolute()) + "/admin-api-shopify/apishopify/" + file_origin
@@ -66,18 +63,35 @@ class Api:
             unidad_peso =  sheet.cell_value(i,9)
             proveedor =  sheet.cell_value(i,10)
             categoria =  sheet.cell_value(i,11)
-            if (self.ValidaProducto(sku) == 0):
-                self.createNewProduct(sku, nombre, descripcion, precio_base, precio_descuento, activo, tags, stock, peso, unidad_peso, proveedor, categoria)
+            res_existe = self.ValidaProducto(sku)
+            if (res_existe == 0):
+                res_producto = self.createNewProduct(sku, nombre, descripcion, precio_base, precio_descuento, activo, tags, stock, peso, unidad_peso, proveedor, categoria, res_existe)
+                if (res_producto == 0):
+                    print(f"el producto con el sku {sku} se creo correctamente.")
+                else:
+                    print("hubo un error al crear el producto.")    
+            elif (res_existe == -1):
+                print('hubo un error al verificar el sku en la web.')    
+                continue
             else:
-                continue    
+                res_producto = self.createNewProduct(sku, nombre, descripcion, precio_base, precio_descuento, activo, tags, stock, peso, unidad_peso, proveedor, categoria, res_existe)
+                if (res_producto == 0):
+                    print(f"el producto con el sku {sku} se actualizó correctamente.")
+                else:
+                    print('hubo un error al actualizar el sku en la web.')
 
 
-    def createNewProduct(self, sku, nombre, descripcion, precio_base, precio_descuento, activo, tags, stock, peso, unidad_peso, proveedor, categoria):
+    def createNewProduct(self, sku, nombre, descripcion, precio_base, precio_descuento, activo, tags, stock, peso, unidad_peso, proveedor, categoria, producto_existe):
 
         try:
             session = shopify.Session(os.getenv('DOMAIN_STOREPRUEBASHOP'), os.getenv('API_VERSION'), os.getenv('CODE_TOKEN_STOREPRUEBASHOP'))
             shopify.ShopifyResource.activate_session(session)  
-            new_product = shopify.Product()
+     
+            if (producto_existe == 0):
+                new_product = shopify.Product()
+            else:
+                new_product = shopify.Product.find(int(producto_existe)) 
+
             new_product.title = nombre
             new_product.status = activo
             new_product.vendor = proveedor
@@ -99,11 +113,12 @@ class Api:
             res_location = self.getLocations()
             if ( res_location != 'error' ):
                 self.addStock(res_location, new_product.variants[0].inventory_item_id, stock)  
-            self.addImagesProduct(new_product.id)
             shopify.ShopifyResource.clear_session()
+            res = 0
         except:
-            print('error de conexion b')  
+            res = -1
 
+        return res      
 
     def addStock(self, location_id, inventory_item_id, stock):
 
@@ -118,7 +133,6 @@ class Api:
         headers = { os.getenv('TOKEN_HEADER') : os.getenv('CODE_TOKEN_STOREPRUEBASHOP')}
 
         requests.post(url_stock, headers = headers, data = data)
-
 
     def getLocations(self):
 
