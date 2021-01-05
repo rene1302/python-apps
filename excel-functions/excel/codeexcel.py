@@ -20,3 +20,7 @@ class Codeexcel:
             unidad_peso = str(repr(sheet.cell_value(i,9)))
             proveedor = str(repr(sheet.cell_value(i,10)))
             categoria = str(repr(sheet.cell_value(i,11)))
+            print(type(sheet.cell_value(i,0)))
+            if ( type(sheet.cell_value(i,0)) is float):
+                print('flotante')
+
