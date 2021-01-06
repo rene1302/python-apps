@@ -1,5 +1,7 @@
 import os
 from tkinter import *
+from tkinter import filedialog
+from tkinter.filedialog import askopenfile 
 from io import open
 import xlrd
 import pathlib
@@ -16,15 +18,18 @@ class Api:
     def prueba(self):
         print('todo bien')
 
+    def open_file(self): 
+        file = askopenfile() 
+        if file is not None: 
+            print(file.name)     
 
     def ventana(self):
         ventana = Tk()
         ventana.geometry("1250x500")
         ventana.resizable(0,0)
-        frame_left = Frame()
-        frame_left.pack(side=LEFT)
-        frame_left.pack()
-        frame_left.config(width = "625", height = "500")
+        # frame left
+        frame_left = Frame(ventana, width = "625", height = "500")
+        frame_left.place(x=0, y=0)
         frame_left.config(
             bg= "#ccc",
         )
@@ -36,10 +41,39 @@ class Api:
             bg = "#ccc",
             padx = 30
         )
+        # frame right top
+        frame_r_top = Frame(ventana, width = "625", height = "250")
+        frame_r_top.place(x=625, y=0)
+        frame_r_top.config(
+            bg = "#cdd3da"
+        )
+        frame_r_top.propagate(False)
+        texto = Label(frame_r_top, text="Acciones")
+        texto.pack(anchor=CENTER)
+        texto.config(
+            font = ("Verdana 24 bold italic"),
+            bg = "#cdd3da",
+            padx = 30
+        )
+        # frame right bottom 
+        frame_r_bottom = Frame(ventana, width = "625", height = "250")
+        frame_r_bottom.place(x=625, y=250)
+        frame_r_bottom.config(
+            bg = "#bdc1c5"
+        )
+        frame_r_bottom.propagate(False)
+        texto = Label(frame_r_bottom, text="Subir Fotos")
+        texto.pack(anchor=CENTER)
+        texto.config(
+            font = ("Verdana 24 bold italic"),
+            bg = "#bdc1c5",
+            padx = 30
+        )
+        btn = Button(frame_r_bottom, text ='Seleccionar carpeta', command=lambda:self.open_file()) 
+        btn.pack(side = TOP, pady = 10) 
         ventana.title('Panel Shopify Api')
-        ventana.mainloop()    
-
-
+        ventana.mainloop()      
+     
     def ValidaProducto(self, sku):
         try:
             session = shopify.Session(os.getenv('DOMAIN_HBWZURICH'), os.getenv('API_VERSION'), os.getenv('CODE_TOKEN_HBWZURICH'))
