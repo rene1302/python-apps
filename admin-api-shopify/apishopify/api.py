@@ -1,4 +1,5 @@
 import os
+from tkinter import *
 from io import open
 import xlrd
 import pathlib
@@ -14,6 +15,30 @@ class Api:
 
     def prueba(self):
         print('todo bien')
+
+
+    def ventana(self):
+        ventana = Tk()
+        ventana.geometry("1250x500")
+        ventana.resizable(0,0)
+        frame_left = Frame()
+        frame_left.pack(side=LEFT)
+        frame_left.pack()
+        frame_left.config(width = "625", height = "500")
+        frame_left.config(
+            bg= "#ccc",
+        )
+        frame_left.propagate(False)
+        texto = Label(frame_left, text="Dominios")
+        texto.pack(anchor=CENTER)
+        texto.config(
+            font = ("Verdana 24 bold italic"),
+            bg = "#ccc",
+            padx = 30
+        )
+        ventana.title('Panel Shopify Api')
+        ventana.mainloop()    
+
 
     def ValidaProducto(self, sku):
         try:
