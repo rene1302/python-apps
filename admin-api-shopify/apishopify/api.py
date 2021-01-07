@@ -9,6 +9,7 @@ import requests
 import shopify
 import re
 import json
+import base64
 from dotenv import load_dotenv
 from requests.exceptions import HTTPError
 load_dotenv()
@@ -18,10 +19,27 @@ class Api:
     def prueba(self):
         print('todo bien')
 
-    def open_file(self): 
-        file = askopenfile() 
-        if file is not None: 
-            print(file.name)     
+    def open_file(self, ventana): 
+        files = filedialog.askopenfilenames()
+        jpg = 0
+        total = 0
+        for file in files:
+            if file[-4:] in ('.jpg'):
+                name_img = os.path.basename(file)
+                sku = name_img[:-6]
+                ruta = file
+                id_product = self.ValidaProducto(sku)
+                if (id_product !=0 and id_product != -1):
+                    print(id_product)
+                    self.addImagesProduct(id_product, ruta)
+                    print('sube foto')
+                else:
+                    print('no existe producto')    
+                jpg += 1
+            total += 1    
+
+        print(f'total de fotos: {total}')
+        print(f'fotos con buen formato ".jpg": {jpg}')    
 
     def ventana(self):
         ventana = Tk()
@@ -69,7 +87,7 @@ class Api:
             bg = "#bdc1c5",
             padx = 30
         )
-        btn = Button(frame_r_bottom, text ='Seleccionar carpeta', command=lambda:self.open_file()) 
+        btn = Button(frame_r_bottom, text ='Seleccionar carpeta', command=lambda:self.open_file(ventana)) 
         btn.pack(side = TOP, pady = 10) 
         ventana.title('Panel Shopify Api')
         ventana.mainloop()      
@@ -277,32 +295,47 @@ class Api:
 
         return res
 
-    def addImagesProduct(self, id_product):
-        ruta_img1 = "https://cdn.shopify.com/s/files/1/0516/6989/3287/files/ff.jpg?v=1608810812"
-        ruta_img2 = "https://cdn.shopify.com/s/files/1/0516/6989/3287/files/foto.jpg?v=1608749484"
+    def addImagesProduct(self, id_product, img):
 
         url_images = os.getenv('DOMAIN_HBWZURICH') + os.getenv('API_BASE') + 'products/' + str(id_product) + '/images.json'
 
-        headers = { os.getenv('TOKEN_HEADER') : os.getenv('CODE_TOKEN_HBWZURICH'), 'Content-Type': 'application/json', 'Accept': 'text/plain'}
+        headers = { os.getenv('TOKEN_HEADER') : os.getenv('CODE_TOKEN_HBWZURICH') }
 
-        for i in range(2):
-            if( i == 0 ):
-                img = ruta_img1
-                pos = 1
-            else:
-                img = ruta_img2  
-                pos = 2  
-            data = {
-                "image": {
-                    "src": img,
-                    "position": pos 
-                }
-            }
+        image = open(img, "rb").read()
+        # filename = image.split("/")[-1:][0] 
 
-            try:
-                result = requests.post(url_images, headers=headers, data=json.dumps(data))
-            except:
-                print('error cargar imagen')
+        print(image) 
+ 
+        # data = {
+        #     "image": {
+        #         "attachment": encoded,
+        #         "filename": filename
+        #     }
+        # }
+
+        # # try:
+        # result = requests.post(url_images, headers=headers, data=data)
+        # # except:
+        # # print('error cargar imagen')
+        # print(result)
+
+
+    def addImages(self, id_product, path):
+        
+        session = shopify.Session(os.getenv('DOMAIN_HBWZURICH'), os.getenv('API_VERSION'), os.getenv('CODE_TOKEN_HBWZURICH'))
+        shopify.ShopifyResource.activate_session(session)  
+
+        new_product = shopify.Product.find(int(id_product))
+        image = shopify.Image({'product_id': new_product.id})
+
+        with open(path, "rb") as f:
+            filename = path.split("/")[-1:][0]
+            encoded = base64.b64decode(f.read())
+            image.attach_image(encoded, filename=filename)
+
+        new_product.images = [image]
+        new_product.save() 
+       
 
 
 
