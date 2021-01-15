@@ -249,22 +249,25 @@ class Api:
             unidad_peso =  sheet.cell_value(i,9)
             proveedor =  sheet.cell_value(i,10)
             categoria =  sheet.cell_value(i,11)
-            res_existe = self.ValidaProducto(sku)
-            if (res_existe == 0):
-                res_producto = self.createNewProduct(sku, nombre, descripcion, precio_base, precio_descuento, activo, tags, stock, peso, unidad_peso, proveedor, categoria, res_existe)
-                if (res_producto == 0):
-                    print(f"el producto con el sku {sku} se creo correctamente.")
+            if (nombre is not None and descripcion is not None and precio_base is not None and precio_descuento is not None and activo is not None and tags is not None and stock is not None and peso is not None and unidad_peso is not None and proveedor is not None and categoria is not None):
+                res_existe = self.ValidaProducto(sku)
+                if (res_existe == 0):
+                    res_producto = self.createNewProduct(sku, nombre, descripcion, precio_base, precio_descuento, activo, tags, stock, peso, unidad_peso, proveedor, categoria, res_existe)
+                    if (res_producto == 0):
+                        print(f"el producto con el sku {sku} se creo correctamente.")
+                    else:
+                        print("hubo un error al crear el producto.")    
+                elif (res_existe == -1):
+                    print('hubo un error al verificar el sku en la web.')    
+                    continue
                 else:
-                    print("hubo un error al crear el producto.")    
-            elif (res_existe == -1):
-                print('hubo un error al verificar el sku en la web.')    
-                continue
+                    res_producto = self.createNewProduct(sku, nombre, descripcion, precio_base, precio_descuento, activo, tags, stock, peso, unidad_peso, proveedor, categoria, res_existe)
+                    if (res_producto == 0):
+                        print(f"el producto con el sku {sku} se actualizó correctamente.")
+                    else:
+                        print('hubo un error al actualizar el sku en la web.')
             else:
-                res_producto = self.createNewProduct(sku, nombre, descripcion, precio_base, precio_descuento, activo, tags, stock, peso, unidad_peso, proveedor, categoria, res_existe)
-                if (res_producto == 0):
-                    print(f"el producto con el sku {sku} se actualizó correctamente.")
-                else:
-                    print('hubo un error al actualizar el sku en la web.')
+                continue            
 
 
     def createNewProduct(self, sku, nombre, descripcion, precio_base, precio_descuento, activo, tags, stock, peso, unidad_peso, proveedor, categoria, producto_existe):
