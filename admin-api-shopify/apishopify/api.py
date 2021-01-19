@@ -1,3 +1,4 @@
+from apishopify import panel
 import os
 from tkinter import *
 from tkinter import filedialog
@@ -19,8 +20,8 @@ load_dotenv()
 
 class Api:
 
-    dominio = os.getenv('DOMAIN_CHILEBEFREE')
-    api_key = os.getenv('CODE_TOKEN_CHILEBEFREE')
+    dominio = os.getenv('DOMAIN_HBWZURICH')
+    api_key = os.getenv('CODE_TOKEN_HBWZURICH')
     api_version = os.getenv('API_VERSION')
     base = os.getenv('API_BASE')
     token_header = os.getenv('TOKEN_HEADER')
@@ -37,7 +38,6 @@ class Api:
 
     def add_quote(self, a):
         return '"{0}"'.format(a)
-
 
     def open_file(self, ventana): 
         files = filedialog.askopenfilenames()
@@ -166,6 +166,7 @@ class Api:
 
 
     def getFileActualizaStock(self, file_origin): 
+        obj_panel = panel.Panel()
         ruta = str(pathlib.Path().absolute()) + "/admin-api-shopify/apishopify/" + file_origin
         workbook = xlrd.open_workbook(ruta, formatting_info=True)
         sheet = workbook.sheet_by_index(0)
@@ -177,11 +178,7 @@ class Api:
                 sku = sheet.cell_value(i,0)  
             stock = int(float(repr(sheet.cell_value(i,1))))
             if (sku is not None and stock is not None):
-                id_product = self.ValidaProducto(sku)
-                if (id_product !=0 and id_product != -1):
-                    self.actualizaStock(id_product, stock)
-                else:
-                    continue    
+                obj_panel.actualizarStock(sku, stock)
             else:
                 continue  
 
@@ -210,7 +207,6 @@ class Api:
 
     
     def getVariantIDProduct(self, id_product):
-
         url_variant_id = self.dominio + self.base + "products/" + str(id_product) + "/variants.json"
         headers = { self.token_header : self.api_key}
         
@@ -228,7 +224,6 @@ class Api:
 
 
     def actualizaPrecio(self, id_product, precio_base, precio_descuento):
-
         id_variant = self.getVariantIDProduct(id_product)
         headers = { self.token_header : self.api_key, 'content-type': 'application/json'}
         if (id_variant != 0):
@@ -371,7 +366,6 @@ class Api:
 
 
     def addImagesProduct(self, id_product, img, name, pos):
-
         url_images = self.dominio + self.base + 'products/' + str(id_product) + '/images.json'
 
         headers = { self.token_header : self.api_key, 'content-type': 'application/json' }
