@@ -9,6 +9,7 @@ import requests
 import shopify
 import re
 import json
+import time
 import cv2
 import string
 import base64
@@ -17,6 +18,22 @@ from requests.exceptions import HTTPError
 load_dotenv()
 
 class Api:
+
+    dominio = os.getenv('DOMAIN_CHILEBEFREE')
+    api_key = os.getenv('CODE_TOKEN_CHILEBEFREE')
+    api_version = os.getenv('API_VERSION')
+    base = os.getenv('API_BASE')
+    token_header = os.getenv('TOKEN_HEADER')
+
+    def tiempo(self):
+        start = time.time()
+        end = time.time()
+        temp = end-start
+        print(round(temp,3))
+
+    def pruebaSku(self, sku):
+        id = self.ValidaProducto(sku)
+        print(id)
 
     def add_quote(self, a):
         return '"{0}"'.format(a)
@@ -28,26 +45,39 @@ class Api:
         total = 0
         aux_sku = ""
         id_product = 0
+        start = time.time()
         for file in files:
-            if file[-4:] in ('.jpg', '.png'):
-                name_img = os.path.basename(file)
-                sku = name_img.split('_',1)[0]
-                if (sku != aux_sku):
-                    id_product = self.ValidaProducto(sku)
-                    aux_sku = sku    
-                pos = name_img.split('_',1)[1]
-                pos = pos.split('.',1)[0]
-                ruta = file
-                if (id_product !=0 and id_product != -1):
-                    self.addImagesProduct(id_product, ruta, name_img, pos)
-                    print(f"La foto {name_img} se subio con exito")
+            if (file.find('_') != -1):
+                if file[-4:] in ('.jpg', '.png'):
+                    name_img = os.path.basename(file)
+                    sku = name_img.split('_',1)[0]
+                    if (sku != aux_sku):
+                        id_product = self.ValidaProducto(sku)
+                        aux_sku = sku    
+                        print(f'cargando fotos del sku {aux_sku}')   
+                    pos = name_img.split('_',1)[1]
+                    pos = pos.split('.',1)[0]
+                    if (str(pos).isdigit() is True):
+                        ruta = file
+                        if (id_product !=0 and id_product != -1):
+                            self.addImagesProduct(id_product, ruta, name_img, pos)
+                            print(f"La foto {name_img} se subio con exito")
+                        else:
+                            print('no existe producto')    
+                        jpg += 1
+                    else:
+                        continue
                 else:
-                    print('no existe producto')    
-                jpg += 1
-            total += 1    
+                    continue        
+                total += 1
+            else:
+                continue
+            end = time.time()
+            temp = end-start        
 
         print(f'total de fotos: {total}')
-        print(f'fotos con buen formato (.jpg ó .png): {jpg}')    
+        print(f'fotos con buen formato (.jpg o .png): {jpg}')    
+        print(f'tiempo total de carga masiva: {round(temp, 3)}')
 
 
     def ventana(self):
@@ -104,7 +134,7 @@ class Api:
 
     def ValidaProducto(self, sku):
         try:
-            session = shopify.Session(os.getenv('DOMAIN_HBWZURICH'), os.getenv('API_VERSION'), os.getenv('CODE_TOKEN_HBWZURICH'))
+            session = shopify.Session(self.dominio, self.api_version, self.api_key)
             shopify.ShopifyResource.activate_session(session) 
             id_product = '''
                 query ($sku : String){
@@ -181,8 +211,8 @@ class Api:
     
     def getVariantIDProduct(self, id_product):
 
-        url_variant_id = os.getenv('DOMAIN_HBWZURICH') + os.getenv('API_BASE') + "products/" + str(id_product) + "/variants.json"
-        headers = { os.getenv('TOKEN_HEADER') : os.getenv('CODE_TOKEN_HBWZURICH')}
+        url_variant_id = self.dominio + self.base + "products/" + str(id_product) + "/variants.json"
+        headers = { self.token_header : self.api_key}
         
         try:
             result = requests.get(url_variant_id, headers = headers)
@@ -200,9 +230,9 @@ class Api:
     def actualizaPrecio(self, id_product, precio_base, precio_descuento):
 
         id_variant = self.getVariantIDProduct(id_product)
-        headers = { os.getenv('TOKEN_HEADER') : os.getenv('CODE_TOKEN_HBWZURICH'), 'content-type': 'application/json'}
+        headers = { self.token_header : self.api_key, 'content-type': 'application/json'}
         if (id_variant != 0):
-            url_precio = os.getenv('DOMAIN_HBWZURICH') + os.getenv('API_BASE') + 'variants/' + str(id_variant) + '.json'
+            url_precio = self.dominio + os.getenv('API_BASE') + 'variants/' + str(id_variant) + '.json'
 
             data = {
                 "variant": {
@@ -221,7 +251,7 @@ class Api:
 
 
     def actualizaStock(self, id_product, stock):
-        session = shopify.Session(os.getenv('DOMAIN_HBWZURICH'), os.getenv('API_VERSION'), os.getenv('CODE_TOKEN_HBWZURICH'))
+        session = shopify.Session(self.dominio, self.api_version, self.api_key)
         shopify.ShopifyResource.activate_session(session) 
         product = shopify.Product.find(int(id_product))
         res_location = self.getLocations()
@@ -263,7 +293,7 @@ class Api:
                 else:
                     res_producto = self.createNewProduct(sku, nombre, descripcion, precio_base, precio_descuento, activo, tags, stock, peso, unidad_peso, proveedor, categoria, res_existe)
                     if (res_producto == 0):
-                        print(f"el producto con el sku {sku} se actualizó correctamente.")
+                        print(f"el producto con el sku {sku} se actualizo correctamente.")
                     else:
                         print('hubo un error al actualizar el sku en la web.')
             else:
@@ -272,7 +302,7 @@ class Api:
 
     def createNewProduct(self, sku, nombre, descripcion, precio_base, precio_descuento, activo, tags, stock, peso, unidad_peso, proveedor, categoria, producto_existe):
         try:
-            session = shopify.Session(os.getenv('DOMAIN_HBWZURICH'), os.getenv('API_VERSION'), os.getenv('CODE_TOKEN_HBWZURICH'))
+            session = shopify.Session(self.dominio, self.api_version, self.api_key)
             shopify.ShopifyResource.activate_session(session)  
      
             if (producto_existe == 0):
@@ -310,11 +340,11 @@ class Api:
 
 
     def getLocations(self):
-        url_location =  os.getenv('DOMAIN_HBWZURICH') + os.getenv('API_BASE') + 'locations.json'  
+        url_location =  self.dominio + self.base + 'locations.json'  
 
         try:
 
-            result = requests.get(url_location, headers = { os.getenv('TOKEN_HEADER') : os.getenv('CODE_TOKEN_HBWZURICH') })
+            result = requests.get(url_location, headers = { self.token_header : self.api_key })
 
             locations = result.json()['locations']
 
@@ -327,7 +357,7 @@ class Api:
 
 
     def addStock(self, location_id, inventory_item_id, stock):
-        url_stock = os.getenv('DOMAIN_HBWZURICH') + os.getenv('API_BASE') + 'inventory_levels/adjust.json'
+        url_stock = self.dominio + self.base + 'inventory_levels/adjust.json'
 
         data = {
             "location_id": location_id,
@@ -335,16 +365,16 @@ class Api:
             "available_adjustment": stock
         }
 
-        headers = { os.getenv('TOKEN_HEADER') : os.getenv('CODE_TOKEN_HBWZURICH')}
+        headers = { self.token_header : self.api_key}
 
         requests.post(url_stock, headers = headers, data = data)
 
 
     def addImagesProduct(self, id_product, img, name, pos):
 
-        url_images = os.getenv('DOMAIN_HBWZURICH') + os.getenv('API_BASE') + 'products/' + str(id_product) + '/images.json'
+        url_images = self.dominio + self.base + 'products/' + str(id_product) + '/images.json'
 
-        headers = { os.getenv('TOKEN_HEADER') : os.getenv('CODE_TOKEN_HBWZURICH'), 'content-type': 'application/json' }
+        headers = { self.token_header : self.api_key, 'content-type': 'application/json' }
 
         with open(img, "rb") as f:
             im_bytes = f.read()        
