@@ -5,6 +5,7 @@ import pathlib
 import requests
 import shopify
 import json
+import datetime
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -25,7 +26,36 @@ class Panel:
 
 
     def actualizarStock(self, sku, stock):
-        tuplas = self.validaSku('Sku002')
+        tuplas = self.validaSku(sku)
+        if (tuplas > 0):
+            self.updateStock(sku, stock)
+        else:
+            self.addStock(sku, stock)   
 
-        
+
+    def addStock(self, sku, stock):
+        tiempo = datetime.datetime.now()
+        sql = "INSERT INTO base_stock (sku, stock, date_upd) VALUES (%s, %s, %s)"
+        data = (sku, stock, tiempo)
+        try:   
+            self.cursor.execute(sql, data)
+            self.conexion.commit()
+            print(f'se creo el stock del sku {sku}')
+        except:
+            print('no se pudo ingresar el stock')
+
+    def updateStock(self, sku, stock):
+        tiempo = datetime.datetime.now()
+        sql = "UPDATE base_stock SET stock = %s WHERE sku = %s"
+        data = (stock, sku)
+        try:
+            self.cursor.execute(sql, data)
+            self.conexion.commit()
+            print(f'Se actualizo el stock del sku {sku}')
+        except:
+            print('No se pudo actualizar el stock del sku {sku}')    
+
+
+
+
 

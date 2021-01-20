@@ -20,8 +20,8 @@ load_dotenv()
 
 class Api:
 
-    dominio = os.getenv('DOMAIN_HBWZURICH')
-    api_key = os.getenv('CODE_TOKEN_HBWZURICH')
+    dominio = os.getenv('DOMAIN_RELOJESVITACURA')
+    api_key = os.getenv('CODE_RELOJESVITACURA')
     api_version = os.getenv('API_VERSION')
     base = os.getenv('API_BASE')
     token_header = os.getenv('TOKEN_HEADER')
@@ -165,8 +165,8 @@ class Api:
         return res    
 
 
-    def getFileActualizaStock(self, file_origin): 
-        obj_panel = panel.Panel()
+    def getFileActualizaStock(self, file_origin):
+        obj_panel = panel.Panel() 
         ruta = str(pathlib.Path().absolute()) + "/admin-api-shopify/apishopify/" + file_origin
         workbook = xlrd.open_workbook(ruta, formatting_info=True)
         sheet = workbook.sheet_by_index(0)
