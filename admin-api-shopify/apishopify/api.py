@@ -26,6 +26,17 @@ class Api:
     base = os.getenv('API_BASE')
     token_header = os.getenv('TOKEN_HEADER')
 
+    def recorrerjson(self):
+        ruta = str(pathlib.Path().absolute()) + "/admin-api-shopify/apishopify/dominios.json"
+        f = open(ruta)
+        data = json.load(f)
+
+        for (k, v) in data.items():
+            top = len(v)
+            for x in range(0, top):
+                print(v[x]['nombre'])
+                print(v[x]['api_key'])
+
     def tiempo(self):
         start = time.time()
         end = time.time()

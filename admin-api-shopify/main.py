@@ -12,4 +12,5 @@ xx.getFileActualizaStock("carga_s_nueva.xls")
 # xx.prueba()
 # xx.pruebaSku('PA2020010')
 # xx.tiempo()
+# xx.recorrerjson()
 
