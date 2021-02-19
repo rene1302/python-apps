@@ -20,11 +20,12 @@ load_dotenv()
 
 class Api:
 
-    dominio = os.getenv('DOMAIN_RELOJESVITACURA')
-    api_key = os.getenv('CODE_RELOJESVITACURA')
+    dominio = os.getenv('DOMAIN_CHILEBEFREE')
+    api_key = os.getenv('CODE_TOKEN_CHILEBEFREE')
     api_version = os.getenv('API_VERSION')
     base = os.getenv('API_BASE')
     token_header = os.getenv('TOKEN_HEADER')
+
 
     def recorrerjson(self):
         ruta = str(pathlib.Path().absolute()) + "/admin-api-shopify/apishopify/dominios.json"
@@ -36,6 +37,7 @@ class Api:
             for x in range(0, top):
                 print(v[x]['nombre'])
                 print(v[x]['api_key'])
+                print('a')
 
     def tiempo(self):
         start = time.time()
